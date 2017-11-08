@@ -14,7 +14,7 @@
 
 // Debugging tools
 #define DEBUGSCOPES 0
-#define COVERAGE    0
+#define COVERAGE    1
 
 // --------------------------------------------------------------------------
 // Debug scopes

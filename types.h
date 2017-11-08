@@ -29,9 +29,9 @@ typedef double            sF64;
 
 //
 #ifdef _DEBUG
-extern void __cdecl printf2(const char *format, ...);
+extern void printf2(const char *format, ...);
 #else
-#define printf2
+#define printf2(...)
 #endif
 
 template<class T> inline T sMin(const T a, const T b) { return (a<b)?a:b;  }

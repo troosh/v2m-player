@@ -355,3 +355,18 @@ void sdInitPatch()
   memcpy(soundmem+128*4+v2curpatch*v2soundsize, v2initsnd, v2soundsize);
   sprintf(patchnames[v2curpatch], "Init Patch #%03d", v2curpatch);
 }
+
+
+#ifdef _DEBUG
+#include <stdarg.h>
+#include <stdio.h>
+void printf2(const char *format, ...)
+{
+  va_list    arg;
+  char buf[4096];
+  va_start(arg, format);
+  vsprintf(buf, format, arg);
+  va_end(arg);
+  printf("%s", buf);
+}
+#endif
