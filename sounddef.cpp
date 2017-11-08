@@ -216,7 +216,7 @@ static bool sdLoadBank(file &in)
   if (!in.eof())
   {
     memcpy(globals,v2initglobs,v2ngparms);
-        sml=in.getuint32_t();
+    sml=in.getuint32_t();
     if (sml<v2ngparms)
     {
       for (int j=0; j<v2ngparms; j++)
@@ -278,11 +278,11 @@ bool sdSaveBank(file &out)
   if (out.write(patchnames,128*32)<128*32) return 0;
 
   // 2: patchdaten
-    if (!out.putuint32_t(smsize-128*4)) return 0;
+  if (!out.putuint32_t(smsize-128*4)) return 0;
   if (out.write(soundmem+128*4,smsize-128*4)<smsize-128*4) return 0;
 
   // 3: globals
-    if (!out.putuint32_t(v2ngparms)) return 0;
+  if (!out.putuint32_t(v2ngparms)) return 0;
   if (out.write(globals,v2ngparms)<v2ngparms) return 0;
 
 #ifdef RONAN
@@ -290,7 +290,7 @@ bool sdSaveBank(file &out)
   if (!out.putsU32(64*256)) return 0;
   if (out.write(speech,64*256)<64*256) return 0;
 #else
-    if (!out.putuint32_t(0)) return 0;
+  if (!out.putuint32_t(0)) return 0;
 #endif
 
   return 1;
@@ -340,18 +340,18 @@ bool sdImportV2MPatches(file &in, const char *prefix)
 
 void sdCopyPatch()
 {
-  memcpy(v2clipboard,soundmem+128*4+v2curpatch*v2soundsize,v2soundsize);
-  strcpy(v2clipname,patchnames[v2curpatch]);
+  memcpy(v2clipboard,soundmem+128*4+v2curpatch*v2soundsize, v2soundsize);
+  strcpy(v2clipname, patchnames[v2curpatch]);
 }
 
 void sdPastePatch()
 {
-  memcpy(soundmem+128*4+v2curpatch*v2soundsize,v2clipboard,v2soundsize);
-  strcpy(patchnames[v2curpatch],v2clipname);
+  memcpy(soundmem+128*4+v2curpatch*v2soundsize, v2clipboard, v2soundsize);
+  strcpy(patchnames[v2curpatch], v2clipname);
 }
 
 void sdInitPatch()
 {
-  memcpy(soundmem+128*4+v2curpatch*v2soundsize,v2initsnd,v2soundsize);
-  sprintf(patchnames[v2curpatch],"Init Patch #%03d",v2curpatch);
+  memcpy(soundmem+128*4+v2curpatch*v2soundsize, v2initsnd, v2soundsize);
+  sprintf(patchnames[v2curpatch], "Init Patch #%03d", v2curpatch);
 }

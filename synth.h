@@ -10,7 +10,7 @@ extern "C"
         extern void synthRender(void *pthis, void *buf, int smp, void *buf2=0, int add=0);
         extern void synthProcessMIDI(void *pthis, const void *ptr);
         extern void synthSetGlobals(void *pthis, const void *ptr);
-//  extern void synthSetSampler(void *pthis, const void *bankinfo, const void *samples);
+//      extern void synthSetSampler(void *pthis, const void *bankinfo, const void *samples);
         extern void synthGetPoly(void *pthis, void *dest);
         extern void synthGetPgm(void *pthis, void *dest);
 //      extern void synthGetLD(void *pthis, float *l, float *r);

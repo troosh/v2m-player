@@ -27,16 +27,18 @@ static struct _ssbase {
     uint32_t    maxtime;
     const uint8_t   *gptr;
     uint32_t  gdnum;
-  struct _basech {
-        uint32_t    notenum;
-        const uint8_t       *noteptr;
-        uint32_t    pcnum;
-        const uint8_t       *pcptr;
-        uint32_t    pbnum;
-        const uint8_t       *pbptr;
-        struct _bcctl {
-            uint32_t    ccnum;
-            const uint8_t       *ccptr;
+    struct _basech
+    {
+        uint32_t       notenum;
+        const uint8_t  *noteptr;
+        uint32_t       pcnum;
+        const uint8_t  *pcptr;
+        uint32_t       pbnum;
+        const uint8_t  *pbptr;
+        struct _bcctl
+        {
+            uint32_t       ccnum;
+            const uint8_t  *ccptr;
         } ctl[7];
     } chan[16];
 
@@ -67,7 +69,7 @@ static void readfile(const unsigned char *inptr, const int inlen)
     base.gdnum=*((uint32_t*)(d+8));
     d+=12;
     base.gptr=d;
-  d+=10*base.gdnum;
+    d+=10*base.gdnum;
     for (int ch=0; ch<16; ch++)
     {
         _ssbase::_basech &c=base.chan[ch];
@@ -107,7 +109,7 @@ static void readfile(const unsigned char *inptr, const int inlen)
     base.patchmap=d;
     d+=base.patchsize;
 
-  if (d-inptr < inlen)
+    if (d-inptr < inlen)
     {
         base.spsize=*((uint32_t*)d);
         d+=4;
@@ -145,54 +147,53 @@ int CheckV2MVersion(const unsigned char *inptr, const int inlen)
     // determine highest used patch from progchange commands
     // (midiconv remaps the patches so that they're a
     //  continuous block from 0 to x)
-  memset(patchesused,0,sizeof(patchesused));
+    memset(patchesused,0,sizeof(patchesused));
     base.maxp=0;
 
 
     for (int ch=0; ch<16; ch++)
     {
+      unsigned char p=0;
+      unsigned char v=0;
 
-    unsigned char p=0;
-    unsigned char v=0;
+      int pcp=0;
+      int pct=0;
+      int pcn=base.chan[ch].pcnum;
+      int np=0;
+      int nt=0;
+      int nn=base.chan[ch].notenum;
 
-    int pcp=0;
-    int pct=0;
-    int pcn=base.chan[ch].pcnum;
-    int np=0;
-    int nt=0;
-    int nn=base.chan[ch].notenum;
+      int td;
+      const uint8_t *ptr;
+      for (int pcp=0; pcp<pcn; pcp++)
+      {
+        // have there been notes? add last pgm
+        ptr=base.chan[ch].pcptr;
+        td=0x10000*ptr[2*pcn+pcp]+0x100*ptr[1*pcn+pcp]+ptr[0*pcn+pcp];
+        pct+=td;
+        if (pct>nt)
+        {
+           patchesused[p]=1;
+           if (p>=base.maxp) base.maxp=p+1;
+        }
+        p+=ptr[3*pcn+pcp];
 
-    int td;
-    const uint8_t *ptr;
-    for (int pcp=0; pcp<pcn; pcp++)
-    {
-      // have there been notes? add last pgm
-      ptr=base.chan[ch].pcptr;
-      td=0x10000*ptr[2*pcn+pcp]+0x100*ptr[1*pcn+pcp]+ptr[0*pcn+pcp];
-      pct+=td;
-      if (pct>nt)
+        // walk notes until we reach current cmd
+        while (np<nn && nt<=pct)
+        {
+          ptr=base.chan[ch].noteptr;
+          td=0x10000*ptr[2*nn+np]+0x100*ptr[1*nn+np]+ptr[0*nn+np];
+          v+=ptr[4*nn+np];
+          nt+=td;
+          np++;
+        }
+      }
+
+      if (np<nn)
       {
         patchesused[p]=1;
-            if (p>=base.maxp) base.maxp=p+1;
-      }
-      p+=ptr[3*pcn+pcp];
-
-      // walk notes until we reach current cmd
-      while (np<nn && nt<=pct)
-      {
-        ptr=base.chan[ch].noteptr;
-        td=0x10000*ptr[2*nn+np]+0x100*ptr[1*nn+np]+ptr[0*nn+np];
-        v+=ptr[4*nn+np];
-        nt+=td;
-        np++;
-      }
-    }
-
-    if (np<nn)
-    {
-      patchesused[p]=1;
         if (p>=base.maxp) base.maxp=p+1;
-    }
+      }
 
     }
     printf2("patches used: %d\n",base.maxp);
@@ -222,7 +223,7 @@ int CheckV2MVersion(const unsigned char *inptr, const int inlen)
                     break;
             }
 
-          if (p==base.maxp-1)
+            if (p==base.maxp-1)
             {
                 printf2("... ok!\n");
                 best=i;
@@ -235,7 +236,7 @@ int CheckV2MVersion(const unsigned char *inptr, const int inlen)
 
     // if we've got exactly one match, we're quite sure
   int ret=(matches>=1)?v2version-best:-2;
-    printf2("found version delta: %d\n",ret);
+  printf2("found version delta: %d\n",ret);
   return ret;
 }
 
@@ -402,8 +403,8 @@ unsigned long GetV2MPatchData(const unsigned char *inptr, const int inlen,
     int outlen;
     ConvertV2M(inptr,inlen,outptr,&outlen);
 
-  const uint8_t *pm=base.newpatchmap;
-  if (!pm) pm=base.patchmap;
+    const uint8_t *pm=base.newpatchmap;
+    if (!pm) pm=base.patchmap;
 
     int *poffsets=(int*)pm;
     for (int i=0; i<base.maxp; i++)

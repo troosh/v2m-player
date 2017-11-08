@@ -104,7 +104,7 @@ bool V2MPlayer::InitBase(const void *a_v2m)
     m_base.patchmap=d;
     d+=size;
 
-  uint32_t spsize=*((uint32_t*)d);
+    uint32_t spsize=*((uint32_t*)d);
     d+=4;
     if (!spsize || spsize>=8192)
     {
@@ -513,7 +513,7 @@ uint32_t V2MPlayer::CalcPositions(sS32 **a_dest)
     gp=m_base.gptr;
     lastevtime=0;
     pb32=32;
-  uint32_t pn;
+    uint32_t pn;
     for (pn=0; pn<posnum; pn++)
     {
         uint32_t curtime=pn*m_base.timediv/8;

@@ -6,10 +6,10 @@
 #include <stdio.h>
 
 #define GETPUTMETHODS(T) virtual T get##T() { T t; read(&t, sizeof(T)); return t; } \
-                                                 virtual int32_t put##T(T t) { return write(&t, sizeof(T)); }
+                         virtual int32_t put##T(T t) { return write(&t, sizeof(T)); }
 
 #define GETPUTFUNCS(T)  static inline T get##T(file &f) { return f.get##T(); }; \
-                                                static inline int32_t put##T(file &f, T t) { return f.put##T(t); };
+                        static inline int32_t put##T(file &f, T t) { return f.put##T(t); };
 
 class  file
 {
@@ -37,8 +37,8 @@ public:
 
   virtual int32_t      copy(file &src, int32_t cnt=-1);
 
-        template<class T> int32_t read(T& buf)   { return read(&buf,sizeof(T)); }
-        template<class T> int32_t write(T& buf)  { return write(&buf,sizeof(T)); }
+  template<class T> int32_t read(T& buf)   { return read(&buf,sizeof(T)); }
+  template<class T> int32_t write(T& buf)  { return write(&buf,sizeof(T)); }
 
   GETPUTMETHODS(int)
   GETPUTMETHODS(bool)
@@ -424,7 +424,7 @@ public:
     bpos=0;
   }
 
-        virtual int32_t read(void *buf, int32_t cnt)
+  virtual int32_t read(void *buf, int32_t cnt)
   {
     if (!buf || !curblk)
       return 0;
@@ -467,7 +467,7 @@ public:
     return rb;
   }
 
-        virtual int32_t write(const void *buf, int32_t cnt)
+  virtual int32_t write(const void *buf, int32_t cnt)
   {
     if (!buf || !curblk)
       return 0;
@@ -513,7 +513,7 @@ public:
     return wb;
   }
 
-        virtual int32_t seek(int32_t pos)
+  virtual int32_t seek(int32_t pos)
   {
     pos=(pos<0)?0:(pos>flen)?flen:pos;
 
@@ -530,11 +530,11 @@ public:
     return fpos=pos;
   }
 
-        virtual int32_t tell() { return fpos; }
-        virtual int32_t size() { return flen; }
+  virtual int32_t tell() { return fpos; }
+  virtual int32_t size() { return flen; }
 
-        template<class T> int32_t read(T& buf)   { return read(&buf, sizeof(T)); }
-        template<class T> int32_t write(T& buf)  { return write(&buf, sizeof(T)); }
+  template<class T> int32_t read(T& buf)   { return read(&buf, sizeof(T)); }
+  template<class T> int32_t write(T& buf)  { return write(&buf, sizeof(T)); }
 
 };
 

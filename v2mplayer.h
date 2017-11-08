@@ -117,11 +117,11 @@ public:
     //         values structured as following:
     //         first  long: time in ms
     //         second long: song position (see above for a description)
-    //                                          format: 0xBBBBTTNN, where
-    //                                                          BBBB is the bar number (starting at 0)
-    //                                                          TT   is the number of the 32th tick within the current bar
-    //                                                          NN   is the total number of 32th ticks a the current bar has
-    //                                                           (32, normally, may change with different time signatures than 4/4)
+    //          format: 0xBBBBTTNN, where
+    //                                    BBBB is the bar number (starting at 0)
+    //                                    TT   is the number of the 32th tick within the current bar
+    //                                    NN   is the total number of 32th ticks a the current bar has
+    //                                         (32, normally, may change with different time signatures than 4/4)
     //         ... and so on for every found position
     //
     // NOTE: it is your responsibility to free the array again.
@@ -153,14 +153,16 @@ private:
         uint32_t    maxtime;
         const uint8_t   *gptr;
         uint32_t  gdnum;
-        struct Channel {
-            uint32_t    notenum;
-            const uint8_t       *noteptr;
-            uint32_t    pcnum;
-            const uint8_t       *pcptr;
-            uint32_t    pbnum;
-            const uint8_t       *pbptr;
-            struct CC {
+        struct Channel
+        {
+            uint32_t       notenum;
+            const uint8_t  *noteptr;
+            uint32_t       pcnum;
+            const uint8_t  *pcptr;
+            uint32_t        pbnum;
+            const uint8_t  *pbptr;
+            struct CC
+            {
                 uint32_t    ccnum;
                 const uint8_t       *ccptr;
             } ctl[7];
@@ -186,22 +188,24 @@ private:
         uint32_t  bar;
         uint32_t  beat;
         uint32_t  tick;
-        struct Channel {
-            const uint8_t       *noteptr;
-            uint32_t  notenr;
-            uint32_t    notent;
-            uint8_t     lastnte;
-            uint8_t   lastvel;
-            const uint8_t   *pcptr;
-            uint32_t  pcnr;
-            uint32_t  pcnt;
-            uint8_t     lastpc;
-            const uint8_t       *pbptr;
-            uint32_t  pbnr;
-            uint32_t  pbnt;
-            uint8_t     lastpb0;
-            uint8_t     lastpb1;
-            struct CC {
+        struct Channel
+        {
+            const uint8_t  *noteptr;
+            uint32_t       notenr;
+            uint32_t       notent;
+            uint8_t        lastnte;
+            uint8_t        lastvel;
+            const uint8_t  *pcptr;
+            uint32_t       pcnr;
+            uint32_t       pcnt;
+            uint8_t        lastpc;
+            const uint8_t  *pbptr;
+            uint32_t       pbnr;
+            uint32_t       pbnt;
+            uint8_t        lastpb0;
+            uint8_t        lastpb1;
+            struct CC
+            {
                 const uint8_t       *ccptr;
                 uint32_t  ccnt;
                 uint32_t  ccnr;
@@ -214,16 +218,16 @@ private:
         uint32_t tdif;
     };
 
-  // \o/
-  uint8_t         m_synth[3*1024*1024];   // TODO: keep me uptodate or use "new"
+    // \o/
+    uint8_t      m_synth[3*1024*1024];   // TODO: keep me uptodate or use "new"
 
     // member variables
-    uint32_t        m_tpc;
-    V2MBase         m_base;
-    PlayerState m_state;
-    uint32_t        m_samplerate;
-    int32_t             m_timeoffset;
-    uint8_t         m_midibuf[4096];
+    uint32_t     m_tpc;
+    V2MBase      m_base;
+    PlayerState  m_state;
+    uint32_t     m_samplerate;
+    int32_t      m_timeoffset;
+    uint8_t      m_midibuf[4096];
     float        m_fadeval;
     float        m_fadedelta;
 
@@ -232,8 +236,6 @@ private:
     bool InitBase(const void *a_v2m);  // inits base struct from v2m
     void  Reset();                      // resets player, inits synth
     void  Tick();                       // one midi player tick
-
-
 };
 
 #endif
