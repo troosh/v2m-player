@@ -80,7 +80,7 @@ int main(int argc, const char** argv) {
         return 1;
     }
 
-  for(fn=1; fn<=argc; fn++)
+  for(fn=1; fn<argc; fn++)
   {
     FILE* file = fopen(argv[fn], "r");
     if (file == NULL) {
