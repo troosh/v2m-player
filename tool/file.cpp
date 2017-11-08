@@ -2,28 +2,28 @@
 
 sS32 file::copy(file &src, sS32 cnt)
 {
-	sS32 copied=0;
-	sS32 maxlen=src.size()-src.tell();
-	if (cnt>0 && cnt<maxlen)
-		maxlen=cnt;
+  sS32 copied=0;
+  sS32 maxlen=src.size()-src.tell();
+  if (cnt>0 && cnt<maxlen)
+    maxlen=cnt;
 
-	sU8 *buf=new sU8[65536];
+  sU8 *buf=new sU8[65536];
 
-	while (maxlen)
-	{
-		sS32 bsize=(maxlen<65536)?maxlen:65536;
-		sS32 bread=src.read(buf, bsize);
-		sS32 bwritten=write(buf, bread);
-		maxlen-=bread;
-		copied+=bwritten;
+  while (maxlen)
+  {
+    sS32 bsize=(maxlen<65536)?maxlen:65536;
+    sS32 bread=src.read(buf, bsize);
+    sS32 bwritten=write(buf, bread);
+    maxlen-=bread;
+    copied+=bwritten;
 
-		if (!bread || bwritten!=bread)
-			break;
-	}
-  
+    if (!bread || bwritten!=bread)
+      break;
+  }
+
   delete[] buf;
 
-	return copied;
+  return copied;
 }
 
 // --------------------------------------------------------------------------- sfile: standard file
@@ -57,12 +57,12 @@ sBool fileS::open(const sChar *name, sInt mode)
 sS32 fileS::read(void *buf, sS32 cnt)
 {
   DWORD bread;
-  
+
   if (hnd==INVALID_HANDLE_VALUE || !ReadFile(hnd, buf, cnt, &bread, 0))
-	{
-		sU32 err=GetLastError();
+  {
+    sU32 err=GetLastError();
     bread=0;
-	}
+  }
 
   return bread;
 }
