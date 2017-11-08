@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <SDL2/SDL.h>
 
@@ -68,6 +69,8 @@ static unsigned char* check_and_convert(unsigned char* tune, int length) {
 }
 
 int main(int argc, const char** argv) {
+    int fn;
+    int err=0;
     printf("Farbrausch Tiny Music Player v0.dontcare TWO\n");
     printf("Code and Synthesizer (C) 2000-2008 kb/Farbrausch\n");
     printf("SDL Port by github.com/jgilje\n\n");
@@ -77,10 +80,13 @@ int main(int argc, const char** argv) {
         return 1;
     }
 
-    FILE* file = fopen(argv[1], "r");
+  for(fn=1; fn<=argc; fn++)
+  {
+    FILE* file = fopen(argv[fn], "r");
     if (file == NULL) {
-        printf("Failed to open %s\n", argv[1]);
-        return 1;
+        printf("Failed to open %s\n", argv[fn]);
+        err|=1;
+        continue;
     }
 
     fseek(file, 0, SEEK_END);
@@ -89,9 +95,11 @@ int main(int argc, const char** argv) {
     unsigned char* theTune = (unsigned char*) calloc(1, size);
 
     size_t read = fread(theTune, 1, size, file);
+    fclose(file);
     if (size != read) {
         fprintf(stderr, "Invalid read size\n");
-        return 1;
+        err|=1;
+        continue;
     }
 
     theTune = check_and_convert(theTune, size);
@@ -99,20 +107,27 @@ int main(int argc, const char** argv) {
     player.Init();
     player.Open(theTune);
 
-    printf("Now Playing: %s\n", argv[1]);
+    printf("Now Playing: %s\n", argv[fn]);
 
     if (! init_sdl()) {
-        return 1;
+        err|=1;
+        break;
     }
 
     player.Play();
     SDL_PauseAudioDevice(dev, 0);
 
-    printf("\n\npress Enter to quit\n");
-    getc(stdin);
+#if 0
+//    printf("\n\npress Enter to quit\n");
+//    getc(stdin);
+#else
+     while(player.IsPlaying()) { sleep(1); }
+#endif
 
     SDL_PauseAudioDevice(dev, 1);
-    SDL_Quit();
     player.Close();
-    return 0;
+    free(theTune);
+  }
+    SDL_Quit();
+    return err;
 }
