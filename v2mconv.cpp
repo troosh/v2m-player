@@ -7,8 +7,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define printf2
-
 #pragma intrinsic (pow, sqrt, log)
 
 extern const char * const v2mconv_errors[] =
@@ -54,9 +52,10 @@ static struct _ssbase {
 
 } base;
 
-
+#if 0
 extern "C" void * memset(void *, int, size_t);
 #pragma intrinsic (memset)
+#endif
 
 static void readfile(const unsigned char *inptr, const int inlen)
 {
@@ -156,7 +155,6 @@ int CheckV2MVersion(const unsigned char *inptr, const int inlen)
       unsigned char p=0;
       unsigned char v=0;
 
-      int pcp=0;
       int pct=0;
       int pcn=base.chan[ch].pcnum;
       int np=0;
@@ -330,9 +328,11 @@ void ConvertV2M(const unsigned char *inptr, const int inlen, unsigned char **out
 
     int *poffsets=(int *)base.patchmap;
     int *noffsets=(int *)newptr;
-    const int ros=v2vsizes[vdelta]-255*3-1;
+    //const int ros=v2vsizes[vdelta]-255*3-1;
 
+#ifdef _DEBUG
     uint8_t *nptr2=newptr;
+#endif
 
     // copy patch table...
     // gcc 5.3 seems to vectorize the loop, but
@@ -348,9 +348,7 @@ void ConvertV2M(const unsigned char *inptr, const int inlen, unsigned char **out
     for (p=0; p<base.maxp; p++)
     {
         const uint8_t *src=base.patchmap+poffsets[p];
-
-        const uint8_t *dest_soll=nptr2+noffsets[p];
-        printf2("p%d ist:%08x soll:%08x\n",p,newptr,dest_soll);
+        printf2("p%d ist:%08x soll:%08x\n",p,newptr,nptr2+noffsets[p]);
 
         // fill patch with default values
         memcpy(newptr,v2initsnd,v2nparms);
