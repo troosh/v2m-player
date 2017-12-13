@@ -11,6 +11,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <SDL2/SDL.h>
@@ -52,18 +54,17 @@ static bool init_sdl() {
 }
 
 static unsigned char* check_and_convert(unsigned char* tune, int length) {
-    sdInit();
-
-    int version = CheckV2MVersion(tune, length);
-    if (version < 0) {
-        SDL_LogCritical(SDL_LOG_CATEGORY_INPUT, "Failed to Check Version on input file");
-        return NULL;
-    }
-
     uint8_t* converted;
     int converted_length;
+
+    sdInit();
     ConvertV2M(tune, length, &converted, &converted_length);
     free(tune);
+
+    if (converted_length == 0) {
+        SDL_LogCritical(SDL_LOG_CATEGORY_INPUT, "Failed Version on input file");
+        return NULL;
+    }
 
     return converted;
 }
@@ -71,6 +72,8 @@ static unsigned char* check_and_convert(unsigned char* tune, int length) {
 int main(int argc, const char** argv) {
     int fn;
     int err=0;
+    struct stat filestat;
+
     printf("Farbrausch Tiny Music Player v0.dontcare TWO\n");
     printf("Code and Synthesizer (C) 2000-2008 kb/Farbrausch\n");
     printf("SDL Port by github.com/jgilje\n\n");
@@ -80,20 +83,39 @@ int main(int argc, const char** argv) {
         return 1;
     }
 
+    if (! init_sdl()) {
+        return 1;
+    }
+
   for(fn=1; fn<argc; fn++)
   {
-    FILE* file = fopen(argv[fn], "r");
+    FILE* file;
+
+    if ( stat(argv[fn], &filestat) )
+    {
+        printf("Failed to get file status\n");
+        err|=1;
+        continue;
+    }
+    printf("Now Playing: %s\n", argv[fn]);
+    printf("This is %sregular file (st_mode=0x%x), size=%llu\n",
+           S_ISREG(filestat.st_mode)? "" : "not ", filestat.st_mode, filestat.st_size);
+
+    int64_t size = filestat.st_size;
+    if (size == -1L)
+    {
+        printf("Failed get size of file\n");
+        err|=1;
+        continue;
+    }
+    file = fopen(argv[fn], "r");
     if (file == NULL) {
         printf("Failed to open %s\n", argv[fn]);
         err|=1;
         continue;
     }
 
-    fseek(file, 0, SEEK_END);
-    int64_t size = ftell(file);
-    fseek(file, 0, SEEK_SET);
     unsigned char* theTune = (unsigned char*) calloc(1, size);
-
     size_t read = fread(theTune, 1, size, file);
     fclose(file);
     if (size != read) {
@@ -103,16 +125,10 @@ int main(int argc, const char** argv) {
     }
 
     theTune = check_and_convert(theTune, size);
-
+    printf("Now Playing: %s\n", argv[fn]);
     player.Init();
     player.Open(theTune);
 
-    printf("Now Playing: %s\n", argv[fn]);
-
-    if (! init_sdl()) {
-        err|=1;
-        break;
-    }
 
     player.Play();
     SDL_PauseAudioDevice(dev, 0);
