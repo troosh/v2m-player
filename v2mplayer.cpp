@@ -65,7 +65,7 @@ bool V2MPlayer::InitBase(const void *a_v2m)
 
     d+=12;
     m_base.gptr=d;
-  d+=10*m_base.gdnum;
+    d+=10*m_base.gdnum;
     for (int ch=0; ch<16; ch++)
     {
         V2MBase::Channel &c=m_base.chan[ch];
