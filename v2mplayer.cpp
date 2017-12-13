@@ -47,7 +47,7 @@ namespace
         *smplrem += (t >> 32);          // bits 32-63
         *smpldelta += (t & 0xffffffff); // bits 00-31
         if (*smplrem < r) {
-            *smpldelta++;
+            (*smpldelta)++;
         }
     }
 }
