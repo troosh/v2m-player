@@ -525,7 +525,7 @@ struct V2Osc
   void chgPitch()
   {
     nffrq = inst->SRfclinfreq * calcfreq((pitch + 64.0f) / 128.0f);
-    freq = (int)(inst->SRfcobasefrq * pow(2.0f, (pitch + note - 60.0f) / 12.0f));
+    freq = (int)(inst->SRfcobasefrq * powf(2.0f, (pitch + note - 60.0f) / 12.0f));
   }
 
   void set(const syVOsc *para)
