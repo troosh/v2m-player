@@ -613,7 +613,7 @@ private:
     return transition_code;
   }
 
-  void renderTriSaw(float *dest, int nsamples)
+  void renderTriSaw(float * __restrict__ dest, int nsamples)
   {
     // Okay, so here's the general idea: instead of the classical sawtooth
     // or triangle waves, V2 uses a generalized triangle wave that looks like
@@ -744,7 +744,7 @@ private:
     }
   }
 
-  void renderPulse(float *dest, int nsamples)
+  void renderPulse(float * __restrict__ dest, int nsamples)
   {
     // This follows the same general pattern as renderTriSaw above, except
     // this time the waveform is a pulse wave with variable pulse width,
@@ -803,7 +803,7 @@ private:
     }
   }
 
-  void renderSin(float *dest, int nsamples)
+  void renderSin(float * __restrict__ dest, int nsamples)
   {
     COVER("Osc sin");
 
@@ -831,7 +831,7 @@ private:
     }
   }
 
-  void renderNoise(float *dest, int nsamples)
+  void renderNoise(float * __restrict__ dest, int nsamples)
   {
     COVER("Osc noise");
 
@@ -854,7 +854,7 @@ private:
     nseed = seed;
   }
 
-  void renderFMSin(float *dest, int nsamples)
+  void renderFMSin(float * __restrict__ dest, int nsamples)
   {
     COVER("Osc FM");
 
@@ -880,7 +880,7 @@ private:
     }
   }
 
-  void renderAux(float *dest, const StereoSample *src, int nsamples)
+  void renderAux(float * __restrict__ dest, const StereoSample *src, int nsamples)
   {
     COVER("Osc aux");
 
@@ -1085,7 +1085,7 @@ struct V2Flt
     }
   }
 
-  void render(float *dest, const float *src, int nsamples, int step=1)
+  void render(float * __restrict__ dest, const float *src, int nsamples, int step=1)
   {
     V2LRC flt;
     V2Moog m;
@@ -1418,7 +1418,7 @@ struct V2Dist
     }
   }
 
-  void renderMono(float *dest, const float *src, int nsamples)
+  void renderMono(float * __restrict__ dest, const float *src, int nsamples)
   {
     switch (mode)
     {
@@ -1463,7 +1463,7 @@ struct V2Dist
     DEBUG_PLOT(this, dest, nsamples);
   }
 
-  void renderStereo(StereoSample *dest, const StereoSample *src, int nsamples)
+  void renderStereo(StereoSample * __restrict__ dest, const StereoSample *src, int nsamples)
   {
     // @@@BUG this matches the original V2 code, but frankly I have my doubts
     // that always running the Moog filters in Mono mode is intentional... 
@@ -1546,7 +1546,7 @@ struct V2DCFilter
     fr.init();
   }
 
-  void renderMono(float *dest, const float *src, int nsamples)
+  void renderMono(float * __restrict__ dest, const float *src, int nsamples)
   {
     float R = inst->SRfcdcfilter;
 
@@ -1556,7 +1556,7 @@ struct V2DCFilter
     fl = l;
   }
 
-  void renderStereo(StereoSample *dest, const StereoSample *src, int nsamples)
+  void renderStereo(StereoSample * __restrict__ dest, const StereoSample *src, int nsamples)
   {
     float R = inst->SRfcdcfilter;
 
@@ -1666,7 +1666,7 @@ struct V2Voice
     DEBUG_PLOT_VAL(&curvol, curvol);
   }
 
-  void render(StereoSample *dest, int nsamples)
+  void render(StereoSample * __restrict__ dest, int nsamples)
   {
     assert(nsamples <= V2Instance::MAX_FRAME_SIZE);
 
@@ -1890,7 +1890,7 @@ struct V2Boost
     b2 = A * (Ap1 - cAm1 - bs) * ia0;
   }
 
-  void render(StereoSample *buf, int nsamples)
+  void render(StereoSample * __restrict__ buf, int nsamples)
   {
     if (!enabled)
       return;
