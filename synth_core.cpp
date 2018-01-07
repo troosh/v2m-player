@@ -542,7 +542,7 @@ struct V2Osc
     nfres = 1.0f - sqrtf(col);
   }
 
-  void render(float *dest, int nsamples)
+  void render(float * __restrict__ dest, int nsamples)
   {
     switch (mode & 7)
     {
@@ -700,6 +700,7 @@ private:
 
     uint32_t state = osm_init();
 
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
     {
       float p = utof23(cnt) - col;
@@ -762,6 +763,7 @@ private:
 
     uint32_t state = osm_init();
 
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
     {
       float p = utof23(cnt);
@@ -809,6 +811,7 @@ private:
 
     // Sine is already a perfectly bandlimited waveform, so we needn't
     // worry about aliasing here.
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
     {
       // Brace yourselves: The name is a lie! It's actually a cosine wave!
@@ -838,6 +841,7 @@ private:
     V2LRC flt = nf;
     uint32_t seed = nseed;
 
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
     {
       // uniform random value (noise)
@@ -866,6 +870,7 @@ private:
     // if you are so inclined.
     //
     // And it's very little code too :)
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
     {
       float mod = dest[i] * fcfmmax;
@@ -885,6 +890,7 @@ private:
     COVER("Osc aux");
 
     float g = gain * fcgain;
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
     {
       float aux = g * (src[i].l + src[i].r);
@@ -1103,6 +1109,7 @@ struct V2Flt
     case LOW:
       COVER("VCF low");
       flt = lrc;
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
       {
         flt.step_2x(src[i*step], cfreq, res);
@@ -1114,6 +1121,7 @@ struct V2Flt
     case BAND:
       COVER("VCF band");
       flt = lrc;
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
       {
         flt.step_2x(src[i*step], cfreq, res);
@@ -1125,6 +1133,7 @@ struct V2Flt
     case HIGH:
       COVER("VCF high");
       flt = lrc;
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
       {
         float h = flt.step_2x(src[i*step], cfreq, res);
@@ -1136,6 +1145,7 @@ struct V2Flt
     case NOTCH:
       COVER("VCF notch");
       flt = lrc;
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
       {
         float h = flt.step_2x(src[i*step], cfreq, res);
@@ -1147,6 +1157,7 @@ struct V2Flt
     case ALL:
       COVER("VCF all");
       flt = lrc;
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
       {
         float h = flt.step_2x(src[i*step], cfreq, res);
@@ -1159,6 +1170,7 @@ struct V2Flt
       COVER("VCF moog low");
       // Moog filters are 2x oversampled, so run filter twice.
       m = moog;
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
       {
         float in = src[i*step];
@@ -1171,6 +1183,7 @@ struct V2Flt
     case MOOGH:
       COVER("VCF moog high");
       m = moog;
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
       {
         float in = src[i*step];
@@ -1429,25 +1442,29 @@ struct V2Dist
 
     case OVERDRIVE:
       COVER("DIST overdrive");
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
         dest[i] = overdrive(src[i]);
       break;
 
     case CLIP:
       COVER("DIST clip");
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
         dest[i] = clip(src[i]);
       break;
 
     case BITCRUSHER:
       COVER("DIST bitcrusher");
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
         dest[i] = bitcrusher(src[i]);
       break;
 
     case DECIMATOR:
       COVER("DIST mono decimator");
-      for (int i=0; i < nsamples; i++)
+#pragma loop count (1000)
+     for (int i=0; i < nsamples; i++)
       {
         decimator_tick(src[i], 0.0f);
         dest[i] = dvall;
@@ -1471,6 +1488,7 @@ struct V2Dist
     {
     case DECIMATOR:
       COVER("DIST stereo decimator");
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
       {
         decimator_tick(src[i].l, src[i].r);
@@ -1551,6 +1569,7 @@ struct V2DCFilter
     float R = inst->SRfcdcfilter;
 
     V2DCF l = fl;
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
       dest[i] = l.step(src[i], R);
     fl = l;
@@ -1562,6 +1581,7 @@ struct V2DCFilter
 
     V2DCF l = fl;
     V2DCF r = fr;
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
     {
       dest[i].l = l.step(src[i].l, R);
@@ -1698,6 +1718,7 @@ struct V2Voice
       COVER("VOICE filter parallel");
       vcf[1].render(voice2, voice, nsamples);
       vcf[0].render(voice, voice, nsamples);
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
         voice[i] = voice[i]*f1gain + voice2[i]*f2gain;
       break;
@@ -1714,6 +1735,7 @@ struct V2Voice
     // voice buffer (mono) -> +=output buffer (stereo)
     // original ASM code has chan buffer hardwired as output here
     float cv = curvol;
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
     {
       float out = voice[i] * cv;
@@ -1902,6 +1924,7 @@ struct V2Boost
       float xm1 = x1[ch], xm2 = x2[ch];
       float ym1 = y1[ch], ym2 = y2[ch];
 
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
       {
         float x = buf[i].ch[ch] + fcdcoffset;
@@ -1989,13 +2012,14 @@ struct V2ModDel
     mphase = ftou32((para->mphase - 64.0f) / 128.0f);
   }
 
-  void renderAux2Main(StereoSample *dest, int nsamples)
+  void renderAux2Main(StereoSample * __restrict__ dest, int nsamples)
   {
     if (!wetout)
       return;
 
     COVER("MODDEL aux->main");
 
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
     {
       StereoSample x;
@@ -2016,6 +2040,7 @@ struct V2ModDel
     COVER("MODDEL chan");
 
     float dry = dryout;
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
       processSample(&chanbuf[i], chanbuf[i].l + fcdcoffset, chanbuf[i].r + fcdcoffset, dry);
   }
@@ -2181,12 +2206,14 @@ struct V2Comp
     {
     case MODE_BIT_PEAK | MODE_BIT_MONO:
       COVER("COMP level peak mono");
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
         levels[i].l = levels[i].r = invol * doPeak(0.5f * (buf[i].l + buf[i].r), 0);
       break;
 
     case MODE_BIT_RMS | MODE_BIT_MONO:
       COVER("COMP level rms mono");
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
       {
         levels[i].l = levels[i].r = invol * doRMS(0.5f * (buf[i].l + buf[i].r), 0);
@@ -2196,6 +2223,7 @@ struct V2Comp
 
     case MODE_BIT_PEAK | MODE_BIT_STEREO:
       COVER("COMP level peak stereo");
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
       {
         levels[i].l = invol * doPeak(buf[i].l, 0);
@@ -2205,6 +2233,7 @@ struct V2Comp
 
     case MODE_BIT_RMS | MODE_BIT_STEREO:
       COVER("COMP level rms stereo");
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
       {
         levels[i].l = invol * doRMS(buf[i].l, 0);
@@ -2220,6 +2249,7 @@ struct V2Comp
       float gain = curgain[ch];
       uint32_t dbind = dbcnt;
 
+#pragma loop count (1000)
       for (int i=0; i < nsamples; i++)
       {
         // lookahead delay line
@@ -2364,12 +2394,13 @@ struct V2Reverb
     lowcut = inst->SRfclinfreq * sqr(sqr(para->lowcut / 128.0f));
   }
 
-  void render(StereoSample *dest, int nsamples)
+  void render(StereoSample * __restrict__ dest, int nsamples)
   {
     const float *inbuf = inst->aux1buf;
 
     COVER("RVB render");
 
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
     {
       float in = inbuf[i] * gainin + fcdcoffset;
@@ -2517,11 +2548,12 @@ struct V2Chan
   }
 
 private:
-  void accumulate(StereoSample *dest, const StereoSample *src, int nsamples, float gain)
+  void accumulate(StereoSample * __restrict__ dest, const StereoSample *src, int nsamples, float gain)
   {
     if (gain == 0.0f)
       return;
 
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
     {
       dest[i].l += gain * src[i].l;
@@ -2529,11 +2561,12 @@ private:
     }
   }
 
-  void accumulateMonoMix(float *dest, const StereoSample *src, int nsamples, float gain)
+  void accumulateMonoMix(float * __restrict__ dest, const StereoSample *src, int nsamples, float gain)
   {
     if (gain == 0.0f)
       return;
 
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
       dest[i] += gain * (src[i].l + src[i].r);
   }
@@ -3233,6 +3266,7 @@ private:
 
     // low cut/high cut
     float lcf = lcfreq, hcf = hcfreq;
+#pragma loop count (1000)
     for (int i=0; i < nsamples; i++)
     {
       for (int ch=0; ch < 2; ch++)
