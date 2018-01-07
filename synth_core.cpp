@@ -119,28 +119,23 @@ static float bits2float(uint32_t u)
 // Fast arctangent
 static float fastatan(float x)
 {
-  // extract sign
-  float sign = 1.0f;
-  if (x < 0.0f)
-  {
-    sign = -1.0f;
-    x = -x;
-  }
-
   // we have two rational approximations: one for |x| < 1.0 and one for
   // |x| >= 1.0, both of the general form
   //   r(x) = (cx1*x + cx3*x^3) / (cxm0 + cxm2*x^2 + cxm4*x^4) + bias
   // original V2 code uses doubles here but frankly the coefficients
   // just aren't accurate enough to warrant it :)
-  static const float coeffs[2][6] = {
+  static const float c[2][6] = {
     //          cx1          cx3         cxm0         cxm2         cxm4         bias
     {          1.0f, 0.43157974f,        1.0f, 0.05831938f, 0.76443945f,        0.0f },
     { -0.431597974f,       -1.0f, 0.05831938f,        1.0f, 0.76443945f, 1.57079633f },
   };
-  const float *c = coeffs[x >= 1.0f]; // interestingly enough, V2 code does this test wrong (cmovge instead of cmovae)
+  float arg_sign = x;
+  x = fabsf(x);
   float x2 = x*x;
-  float r = (c[1]*x2 + c[0])*x / ((c[4]*x2 + c[3])*x2 + c[2]) + c[5];
-  return r * sign;
+  float r0 = (c[0][1]*x2 + c[0][0])*x / ((c[0][4]*x2 + c[0][3])*x2 + c[0][2]) + c[0][5];
+  float r1 = (c[1][1]*x2 + c[1][0])*x / ((c[1][4]*x2 + c[1][3])*x2 + c[1][2]) + c[1][5];
+  // interestingly enough, V2 code does this test wrong (cmovge instead of cmovae)
+  return copysignf((x >= 1.0f)? r1 : r0, arg_sign);
 }
 
 // Fast sine for x in [-pi/2, pi/2]
