@@ -4,7 +4,7 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #define V2TYPES
 
-/*
+#ifdef RONAN
 typedef int               sInt;
 typedef unsigned int      sUInt;
 typedef sInt              sBool;
@@ -22,7 +22,7 @@ typedef unsigned long     sU32;
 
 typedef float             sF32;
 typedef double            sF64;
-*/
+#endif
 
 #define sTRUE             1
 #define sFALSE            0

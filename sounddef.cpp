@@ -129,7 +129,7 @@ void sdInit()
   }
 
 #ifdef RONAN
-  ZeroMemory(speech,64*256);
+  memset(speech,0,64*256);
   for (int i=0; i<64; i++)
     speechptrs[i]=speech[i];
 
@@ -232,7 +232,7 @@ static bool sdLoadBank(file &in)
 
 
 #ifdef RONAN
-  ZeroMemory(speech,64*256);
+  memset(speech,0,64*256);
 #endif
 
   if (!in.eof())
@@ -287,7 +287,7 @@ bool sdSaveBank(file &out)
 
 #ifdef RONAN
   // 4: speech synth
-  if (!out.putsU32(64*256)) return 0;
+  if (!out.putuint32_t(64*256)) return 0;
   if (out.write(speech,64*256)<64*256) return 0;
 #else
   if (!out.putuint32_t(0)) return 0;
