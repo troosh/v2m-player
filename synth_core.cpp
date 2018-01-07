@@ -459,8 +459,8 @@ struct V2Instance
 
     // low shelving EQ
     float boost = (fcboostfreq * fc2pi) / sr;
-    SRfcBoostCos = cos(boost);
-    SRfcBoostSin = sin(boost);
+    SRfcBoostCos = cosf(boost);
+    SRfcBoostSin = sinf(boost);
   }
 };
 
@@ -819,8 +819,12 @@ private:
       cnt += freq; // step the oscillator
 
       // range reduce to [0,pi]
+#if 0
       if (phase & 0x80000000) // Symmetry: cos(x) = cos(-x)
         phase = ~phase; // V2 uses ~ not - which is slightly off but who cares
+#else
+      phase ^= ((int32_t)phase >> 31);
+#endif
 
       // convert to t in [1,2)
       float t = bits2float((phase >> 8) | 0x3f800000); // 1.0f + (phase / (2^31))
@@ -1398,7 +1402,7 @@ struct V2Dist
       break;
 
     case OVERDRIVE:
-      gain2 = (para->param1 / 128.0f) / atan(gain1);
+      gain2 = (para->param1 / 128.0f) / atanf(gain1);
       offs = gain1 * 2.0f * ((para->param2 / 128.0f) - 0.5f);
       break;
 
