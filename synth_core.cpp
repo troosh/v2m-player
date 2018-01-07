@@ -12,7 +12,9 @@
 // Ye olde original V2 bugs you can turn on and off :)
 #define BUG_V2_FM_RANGE 1     // Broken sine range reduction for FM oscis
 
-#define USE_SOFT_DNZ 0 // This slow, but compatible
+#define USE_SOFT_FTZ 0 // Use soft flush-to-zero (FTZ). This slow, but compatible.
+// https://stackoverflow.com/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x
+// https://software.intel.com/en-us/node/523328
 
 // Debugging tools
 #define DEBUGSCOPES 0
@@ -86,10 +88,11 @@ static const float fcgainh     = 0.6f;
 static const float fcmdlfomul  = 1973915.49f;
 static const float fccpdfalloff = 0.9998f; // @@@BUG this should probably depend on sampling rate.
 
-#if USE_SOFT_DNZ
+#if USE_SOFT_FTZ
 static const float fcdcoffset  = 3.814697265625e-6f; // 2^-18
 #else
 static const float fcdcoffset  = 0.0f;
+#include <xmmintrin.h>
 #endif
 
 // --------------------------------------------------------------------------
@@ -151,7 +154,24 @@ static float fastsin(float x)
 
 // Fast sine with range check (for x >= 0)
 // Applies symmetries, then funnels into fastsin.
-static float fastsinrc(float x)
+static float fastsinrc_pos(float x)
+{
+  // first range reduction: mod with 2pi
+  x = fc2pi * fmodf(x, 1.0f);
+  // now x in [-2pi,2pi]
+
+  // need to reduce to [-pi/2, pi/2] to call fastsin
+  if (x > fc1p5pi) // x in (3pi/2,2pi]
+    x -= fc2pi; // sin(x) = sin(x-2pi)
+  else if (x > fcpi_2) // x in (pi/2,3pi/2]
+    x = fcpi - x; // sin(x) = -sin(x-pi) = sin(-(x-pi)) = sin(pi-x)
+
+  return fastsin(x);
+}
+
+// Fast sine with range check (for any x, positive and negative)
+// Applies symmetries, then funnels into fastsin.
+static float fastsinrc_any(float x)
 {
   // @@@BUG
   // NB this range reduction really only works for values >=0,
@@ -160,7 +180,7 @@ static float fastsinrc(float x)
   // V2 code does. :)
 
   // first range reduction: mod with 2pi
-  x = fmodf(x, fc2pi);
+  x = fc2pi * fmodf(x, 1.0f);
   // now x in [-2pi,2pi]
 
 #if !BUG_V2_FM_RANGE
@@ -173,7 +193,7 @@ static float fastsinrc(float x)
     x -= fc2pi; // sin(x) = sin(x-2pi)
   else if (x > fcpi_2) // x in (pi/2,3pi/2]
     x = fcpi - x; // sin(x) = -sin(x-pi) = sin(-(x-pi)) = sin(pi-x)
-  
+
   return fastsin(x);
 }
 
@@ -890,10 +910,10 @@ private:
     for (int i=0; i < nsamples; i++)
     {
       float mod = dest[i] * fcfmmax;
-      float t = (utof23(cnt) + mod) * fc2pi;
+      float t = utof23(cnt) + mod;
       cnt += freq;
 
-      float out = gain * fastsinrc(t);
+      float out = gain * fastsinrc_any(t);
       if (ring)
         dest[i] *= out;
       else
@@ -1326,7 +1346,7 @@ struct V2LFO
     case SIN:
       COVER("LFO sin");
       v = utof23(cntr);
-      v = fastsinrc(v * fc2pi) * 0.5f + 0.5f;
+      v = fastsinrc_pos(v) * 0.5f + 0.5f;
       break;
 
     case S_H:
@@ -2725,8 +2745,8 @@ struct V2Synth
     // Look away please :)
     memset(this, 0, sizeof(this));
 
-#if !USE_SOFT_DNZ
-  // TODO: Enable hardware DNZ
+#if !USE_SOFT_FTZ
+    _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
 #endif
 
     // set sampling rate
