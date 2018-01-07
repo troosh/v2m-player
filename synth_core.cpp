@@ -152,23 +152,6 @@ static float fastsin(float x)
   return (((-0.00018542f*x2 + 0.0083143f)*x2 - 0.16666f)*x2 + 1.0f) * x;
 }
 
-// Fast sine with range check (for x >= 0)
-// Applies symmetries, then funnels into fastsin.
-static float fastsinrc_pos(float x)
-{
-  // first range reduction: mod with 2pi
-  x = fc2pi * fmodf(x, 1.0f);
-  // now x in [-2pi,2pi]
-
-  // need to reduce to [-pi/2, pi/2] to call fastsin
-  if (x > fc1p5pi) // x in (3pi/2,2pi]
-    x -= fc2pi; // sin(x) = sin(x-2pi)
-  else if (x > fcpi_2) // x in (pi/2,3pi/2]
-    x = fcpi - x; // sin(x) = -sin(x-pi) = sin(-(x-pi)) = sin(pi-x)
-
-  return fastsin(x);
-}
-
 // Fast sine with range check (for any x, positive and negative)
 // Applies symmetries, then funnels into fastsin.
 static float fastsinrc_any(float x)
@@ -180,7 +163,7 @@ static float fastsinrc_any(float x)
   // V2 code does. :)
 
   // first range reduction: mod with 2pi
-  x = fc2pi * fmodf(x, 1.0f);
+  x = fc2pi * (x - floorf(x));
   // now x in [-2pi,2pi]
 
 #if !BUG_V2_FM_RANGE
@@ -266,6 +249,24 @@ static inline float lerp(float a, float b, float t)
 {
   return a + t * (b-a);
 }
+
+
+// Fast sine for LFO
+// Applies symmetries, then funnels into fastsin.
+static float fastsinrc_lfo( uint32_t cntr)
+{
+  float x = fc2pi * utof23(cntr);
+  // now x in [0,2pi]
+
+  // need to reduce to [-pi/2, pi/2] to call fastsin
+  if (x > fc1p5pi) // x in (3pi/2,2pi]
+    x -= fc2pi; // sin(x) = sin(x-2pi)
+  else if (x > fcpi_2) // x in (pi/2,3pi/2]
+    x = fcpi - x; // sin(x) = -sin(x-pi) = sin(-(x-pi)) = sin(pi-x)
+
+  return fastsin(x);
+}
+
 
 // DEBUG
 #include <stdarg.h>
@@ -1345,8 +1346,7 @@ struct V2LFO
 
     case SIN:
       COVER("LFO sin");
-      v = utof23(cntr);
-      v = fastsinrc_pos(v) * 0.5f + 0.5f;
+      v = fastsinrc_lfo(cntr) * 0.5f + 0.5f;
       break;
 
     case S_H:
