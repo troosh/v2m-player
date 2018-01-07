@@ -1,4 +1,3 @@
-
 #include "types.h"
 #include "v2mconv.h"
 #include "sounddef.h"
@@ -6,8 +5,9 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
-#pragma intrinsic (pow, sqrt, log)
+#pragma intrinsic (powf, sqrtf, logf)
 
 extern const char * const v2mconv_errors[] =
 {
@@ -242,9 +242,9 @@ int CheckV2MVersion(const unsigned char *inptr, const int inlen)
 //Klicke den Narren über Dir und das Schauspiel wird beginnen...
 static int transEnv(int enVal)
 {
-  float dv=(float)(1.0f-pow(2.0f, -enVal/128.0f*11.0f));
-  dv=(float)sqrt(dv); // square root to correct value
-  int nEnVal=(int)(-log(1.0f-dv)/log(2.0f)*128.0f/11.0f);
+  float dv=(float)(1.0f-powf(2.0f, -enVal/128.0f*11.0f));
+  dv=(float)sqrtf(dv); // square root to correct value
+  int nEnVal=(int)(-logf(1.0f-dv)/logf(2.0f)*128.0f/11.0f);
   if (nEnVal<0)
   {
     printf2("!!clamping enval lower bound!\n");
@@ -267,18 +267,20 @@ void ConvertV2M(const unsigned char *inptr, const int inlen, unsigned char **out
     int vdelta=CheckV2MVersion(inptr,inlen);
     if (!vdelta) // if same, simply clone
     {
-        *outptr=new uint8_t[inlen+4];
-        memset(*outptr,0,inlen+4);
+        *outptr=(unsigned char *)calloc(1, inlen+4);
         *outlen=inlen+4;
         memcpy(*outptr,inptr,inlen);
+        printf2("info: version okay, simple clone and return\n");
         return;
     }
     else if (vdelta<0) // if invalid...
     {
         *outptr=0;
         *outlen=0;
+        printf2("info: invalid version!\n");
         return;
     }
+    printf2("info: converting...\n");
     vdelta=v2version-vdelta;
 
     // fake base.maxp
@@ -297,8 +299,7 @@ void ConvertV2M(const unsigned char *inptr, const int inlen, unsigned char **out
 
     // init new v2m
     *outlen=newsize+4;
-    uint8_t *newptr=*outptr=new uint8_t[newsize+4];
-    memset(newptr,0,newsize+4);
+    uint8_t *newptr=*outptr=(uint8_t *)calloc(1, newsize+4);
 
     // copy midi data
     memcpy(newptr,inptr,base.midisize);
@@ -391,7 +392,7 @@ void ConvertV2M(const unsigned char *inptr, const int inlen, unsigned char **out
     newptr+=base.spsize;
 
     printf2("est size: %d, real size: %d\n",newsize,newptr-*outptr);
-
+    printf2("info: converted ***\n");
 }
 
 
