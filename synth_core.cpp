@@ -401,6 +401,7 @@ public:
   }
 };
 
+#ifdef _DEBUG
 // debug stuff
 static void checkRange(const float *src, int nsamples)
 {
@@ -412,6 +413,7 @@ static void checkRange(const StereoSample *src, int nsamples)
 {
   checkRange(&src[0].l, nsamples * 2);
 }
+#endif
 
 // --------------------------------------------------------------------------
 // V2 Instance
@@ -509,8 +511,9 @@ struct V2Osc
   void init(V2Instance *instance, int idx)
   {
     static const uint32_t seeds[] = { 0xdeadbeefu, 0xbaadf00du, 0xd3adc0deu };
+#ifdef _DEBUG
     assert(idx < COUNTOF(seeds));
-
+#endif
     cnt = 0;
     nf.init();
     nseed = seeds[idx];
@@ -734,11 +737,12 @@ private:
       case OSMTC_DOWN_UP_DOWN: // case f)
         y = -rcpf * (gain + c2*omf*(p + p + omf));
         break;
-
+#ifdef _DEBUG
       // INVALID CASES
       default:
         assert(false);
         break;
+#endif
       }
 
       output(dest + i, y + gain);
@@ -794,11 +798,12 @@ private:
       case OSMTC_DOWN_UP_DOWN:
         out = cc212;
         break;
-
+#ifdef _DEBUG
       // INVALID CASES
       default:
         assert(false);
         break;
+#endif
       }
 
       output(dest + i, out);
@@ -1692,8 +1697,9 @@ struct V2Voice
 
   void render(StereoSample * __restrict__ dest, int nsamples)
   {
+#ifdef _DEBUG
     assert(nsamples <= V2Instance::MAX_FRAME_SIZE);
-
+#endif
     // clear voice buffer
     float *voice = inst->vcebuf;
     float *voice2 = inst->vcebuf2;
@@ -1983,7 +1989,9 @@ struct V2ModDel
 
   void init(V2Instance *instance, float *buf1, float *buf2, int buflen)
   {
+#ifdef _DEBUG
     assert(buflen != 0 && (buflen & (buflen - 1)) == 0);
+#endif
     db[0] = buf1;
     db[1] = buf2;
     dbufmask = buflen - 1;
@@ -2171,7 +2179,9 @@ struct V2Comp
     case MODE_OFF:  mode = MODE_BIT_OFF; break;
     case MODE_PEAK: mode = MODE_BIT_PEAK | MODE_BIT_ON; break;
     case MODE_RMS:  mode = MODE_BIT_RMS | MODE_BIT_ON; break;
+#ifdef _DEBUG
     default:        assert(false);
+#endif
     }
 
     if (para->stereo != 0.0f)
@@ -2914,7 +2924,9 @@ struct V2Synth
           }
 
           // we have our voice - assign it!
+#ifdef _DEBUG
           assert(usevoice >= 0);
+#endif
           chanmap[usevoice] = chan;
           voicemap[chan] = usevoice;
           allocpos[usevoice] = curalloc++;
@@ -3074,7 +3086,9 @@ struct V2Synth
 private:
   const V2Sound *getpatch(int pgm) const
   {
+#ifdef _DEBUG
     assert(pgm >= 0 && pgm < 128);
+#endif
     return (const V2Sound *)&patchmap->raw_data[patchmap->offsets[pgm]];
   }
 
@@ -3115,7 +3129,9 @@ private:
 
   void storeV2Values(int vind)
   {
+#ifdef _DEBUG
     assert(vind >= 0 && vind < POLY);
+#endif
     int chan = chanmap[vind];
     if (chan < 0)
       return;
@@ -3127,7 +3143,7 @@ private:
     syVV2 *vpara = &voicesv[vind];
     float *vparaf = (float *)vpara;
     V2Voice *voice = &voicesw[vind];
-    
+
     // copy voice dependent data
     for (int i=0; i < COUNTOF(patch->voice); i++)
       vparaf[i] = (float)patch->voice[i];
@@ -3148,7 +3164,9 @@ private:
 
   void storeChanValues(int chan)
   {
+#ifdef _DEBUG
     assert(chan >= 0 && chan < CHANS);
+#endif
 
     // get patch definition
     const V2Sound *patch = getpatch(chans[chan].pgm);
