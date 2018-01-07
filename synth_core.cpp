@@ -1702,8 +1702,8 @@ struct V2Voice
     assert(nsamples <= V2Instance::MAX_FRAME_SIZE);
 #endif
     // clear voice buffer
-    float *voice = inst->vcebuf;
-    float *voice2 = inst->vcebuf2;
+    float * __restrict__ voice = inst->vcebuf;
+    float * __restrict__ voice2 = inst->vcebuf2;
     memset(voice, 0, nsamples * sizeof(*voice));
 
     // oscillators -> voice buffer
@@ -2748,6 +2748,7 @@ struct V2Synth
     compr.init(&instance);
     dcf.init(&instance);
 
+#ifdef _DEBUG
     // debug plots (uncomment the ones you want)
     int sr_plot = 44100/10; // plot rate
     int sr_lfo = 800;
@@ -2766,11 +2767,12 @@ struct V2Synth
     //DEBUG_PLOT_OPEN(DEBUG_PLOT_CHAN(&chansw[0], 1), "Channel 0 R", sr_plot, w, h);
     //DEBUG_PLOT_OPEN(DEBUG_PLOT_CHAN(&instance.mixbuf, 0), "Mix L", sr_plot, w, h);
     //DEBUG_PLOT_OPEN(DEBUG_PLOT_CHAN(&instance.mixbuf, 1), "Mix R", sr_plot, w, h);
+#endif
 
     initialized = true;
   }
 
-  void render(float *buf, int nsamples, float *buf2, bool add)
+  void render(float * __restrict__ buf, int nsamples, float * __restrict__ buf2, bool add)
   {
     int todo = nsamples;
 
@@ -3050,8 +3052,8 @@ struct V2Synth
       return;
 
     // copy over
-    float *globf = (float *)&globals;
-    for (int i=0; i < sizeof(globals)/sizeof(float); i++)
+    float * __restrict__ globf = (float *)&globals;
+    for (size_t i=0; i < sizeof(globals)/sizeof(float); i++)
       globf[i] = para[i];
 
     // set
@@ -3146,7 +3148,7 @@ private:
     V2Voice *voice = &voicesw[vind];
 
     // copy voice dependent data
-    for (int i=0; i < COUNTOF(patch->voice); i++)
+    for (size_t i=0; i < COUNTOF(patch->voice); i++)
       vparaf[i] = (float)patch->voice[i];
 
     // modulation matrix
@@ -3179,14 +3181,14 @@ private:
     V2Voice *voice = &voicesw[voicemap[chan]];
 
     // copy channel dependent data
-    for (int i=0; i < COUNTOF(patch->chan); i++)
+    for (size_t i=0; i < COUNTOF(patch->chan); i++)
       cparaf[i] = (float)patch->chan[i];
 
     // modulation matrix
     for (int i=0; i < patch->modnum; i++)
     {
       const V2Mod *mod = &patch->modmatrix[i];
-      int dest = mod->dest - COUNTOF(patch->voice);
+      size_t dest = mod->dest - COUNTOF(patch->voice);
       if (dest < 0 || dest >= COUNTOF(patch->chan))
         continue;
 
