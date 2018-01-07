@@ -828,7 +828,8 @@ private:
       if (phase & 0x80000000) // Symmetry: cos(x) = cos(-x)
         phase = ~phase; // V2 uses ~ not - which is slightly off but who cares
 #else
-      phase ^= ((int32_t)phase >> 31);
+      // Symmetry: cos(x) = cos(-x)
+      phase ^= int32_t(phase) >> 31; // V2 uses ~ not - which is slightly off but who cares
 #endif
 
       // convert to t in [1,2)
@@ -1975,7 +1976,7 @@ struct V2ModDel
 
   uint32_t dbptr;     // buffer write pos
   uint32_t dboffs[2]; // buffer read offset
-  
+
   uint32_t mcnt;      // mod counter
   int mfreq;     // mod freq
   uint32_t mphase;    // mod phase
@@ -2062,24 +2063,24 @@ private:
   {
     // modulation is a triangle wave
     uint32_t counter = mcnt + (ch ? mphase : 0);
-    counter = (counter < 0x80000000u) ? counter*2 : 0xffffffffu - counter*2;
-    
+    counter = (int32_t(counter) >> 31) ^ (counter<<1);
+
     // determine effective offset
     uint64_t offs32_32 = (uint64_t)counter * mmaxoffs; // 32.32 fixed point
     uint32_t offs_int = uint32_t(offs32_32 >> 32) + dboffs[ch];
     uint32_t index = dbptr - offs_int;
 
     // linear interpolation using low-order bits of offs32_32.
-    float *delaybuf = db[ch];
+    float * __restrict__ delaybuf = db[ch];
     float x = utof23((uint32_t)(offs32_32 & 0xffffffffu));
     float delayed = lerp(delaybuf[(index - 0) & dbufmask], delaybuf[(index - 1) & dbufmask], x);
-    
+
     // mix and output
     delaybuf[dbptr] = in + delayed*fbval;
     return in*dry + delayed*wetout;
   }
 
-  inline void processSample(StereoSample *out, float l, float r, float dry)
+  inline void processSample(StereoSample * __restrict__ out, float l, float r, float dry)
   {
     out->l = processChanSample(l, 0, dry);
     out->r = processChanSample(r, 1, dry);
