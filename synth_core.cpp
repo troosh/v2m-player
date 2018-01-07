@@ -12,6 +12,8 @@
 // Ye olde original V2 bugs you can turn on and off :)
 #define BUG_V2_FM_RANGE 1     // Broken sine range reduction for FM oscis
 
+#define USE_SOFT_DNZ 0 // This slow, but compatible
+
 // Debugging tools
 #define DEBUGSCOPES 0
 #define COVERAGE    1
@@ -84,7 +86,11 @@ static const float fcgainh     = 0.6f;
 static const float fcmdlfomul  = 1973915.49f;
 static const float fccpdfalloff = 0.9998f; // @@@BUG this should probably depend on sampling rate.
 
+#if USE_SOFT_DNZ
 static const float fcdcoffset  = 3.814697265625e-6f; // 2^-18
+#else
+static const float fcdcoffset  = 0.0f;
+#endif
 
 // --------------------------------------------------------------------------
 // General helper functions. 
@@ -2718,6 +2724,10 @@ struct V2Synth
     // virtual functions or anything so it should be fine. Ahem.
     // Look away please :)
     memset(this, 0, sizeof(this));
+
+#if !USE_SOFT_DNZ
+  // TODO: Enable hardware DNZ
+#endif
 
     // set sampling rate
     this->samplerate = samplerate;
