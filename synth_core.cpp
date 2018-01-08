@@ -530,7 +530,7 @@ struct V2Osc
 
   V2Instance *inst;   // V2 instance we belong to.
 
-  void init(V2Instance *instance, int idx)
+  void init(V2Instance *instance, unsigned int idx)
   {
     static const uint32_t seeds[] = { 0xdeadbeefu, 0xbaadf00du, 0xd3adc0deu };
 #ifdef _DEBUG
@@ -2738,7 +2738,7 @@ struct V2Synth
     // Ahem, so this is somewhat dubious, but we don't use
     // virtual functions or anything so it should be fine. Ahem.
     // Look away please :)
-    memset(this, 0, sizeof(this));
+    memset(this, 0, sizeof(V2Synth));
 
 #if !USE_SOFT_FTZ
     _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
