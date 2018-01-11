@@ -99,7 +99,7 @@ struct ResDef {
   float a, b, c;  // coefficients
 
   void set(float f, float bw, float gain) {
-    float r = exp(g.fcminuspi_sr * bw);
+    float r = expf(g.fcminuspi_sr * bw);
     c = -(r * r);
     b = r * (float)cosf(g.fc2pi_sr * f) * 2.0f;
     a = gain * (1.0f - b - c);
