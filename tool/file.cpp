@@ -7,7 +7,7 @@ sS32 file::copy(file &src, sS32 cnt)
   if (cnt>0 && cnt<maxlen)
     maxlen=cnt;
 
-  sU8 *buf=new sU8[65536];
+  uint8_t *buf=new uint8_t[65536];
 
   while (maxlen)
   {

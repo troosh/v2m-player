@@ -5,12 +5,13 @@
 #ifdef RONAN
 
 #include "types.h"
-#include "math.h"
+#include <math.h>
+#include <stdint.h>
 
 //#pragma intrinsic (atan, cos, fabs)
 
 
-static sInt sFtol (const float f)
+static int sFtol (const float f)
 {
 #if 0
   __asm
@@ -21,12 +22,12 @@ static sInt sFtol (const float f)
     pop eax
   }
 #else
-    return (sInt)f;
+    return (int)f;
 #endif
 }
 
 
-static sF64 sFPow(sF64 a,sF64 b)
+static double sFPow(double a,double b)
 {
 #if 0
   // faster pow based on code by agner fog
@@ -83,7 +84,7 @@ end:
 #endif
 }
 
-static sF64 sFExp(sF64 f)
+static double sFExp(double f)
 {
 #if 0
   __asm
@@ -117,7 +118,7 @@ namespace Ronan
 {
   int mystrnicmp1(const char *a, const char *b)
   {
-    sInt l=0;
+    int l=0;
     while (*a && *b)
       if ((*a++ | 0x20)!=(*b++ | 0x20))
         return 0;
@@ -127,7 +128,7 @@ namespace Ronan
   }
 
 
-  #define PI (4.0f*(sF32)atanf(1.0f))
+  #define PI (4.0f*(float)atanf(1.0f))
 
   #include "phonemtab.h"
 
@@ -135,9 +136,9 @@ namespace Ronan
 
   static struct
   {
-    sU32 samplerate;
-    sF32 fcminuspi_sr;
-    sF32 fc2pi_sr;
+    uint32_t samplerate;
+    float fcminuspi_sr;
+    float fc2pi_sr;
   } g;
 
 
@@ -146,7 +147,7 @@ namespace Ronan
   static const struct syldef
   {
     char syl[4];
-    sS8  ptab[4];
+    int8_t  ptab[4];
   } syls[] = {
     {"sil",{50,-1,-1,-1}},
     {"ng",{38,-1,-1,-1}},
@@ -208,13 +209,13 @@ namespace Ronan
   // filter type 1: 2-pole resonator
   struct ResDef
   {
-    sF32 a,b,c;  // coefficients
+    float a,b,c;  // coefficients
 
-    void set(sF32 f, sF32 bw, sF32 gain)
+    void set(float f, float bw, float gain)
     {
-      sF32 r=(sF32)sFExp(g.fcminuspi_sr*bw);
+      float r=(float)sFExp(g.fcminuspi_sr*bw);
       c=-(r*r);
-      b=r*(sF32)cosf(g.fc2pi_sr*f)*2.0f;
+      b=r*(float)cosf(g.fc2pi_sr*f)*2.0f;
       a=gain*(1.0f-b-c);
     }
   };
@@ -222,13 +223,13 @@ namespace Ronan
   struct Resonator
   {
     ResDef *def;
-    sF32 p1, p2; // delay buffers
+    float p1, p2; // delay buffers
 
     inline void setdef(ResDef &a_def) { def=&a_def; }
 
-    sF32 tick(sF32 in)
+    float tick(float in)
     {
-      sF32 x=def->a*in+def->b*p1+def->c*p2;
+      float x=def->a*in+def->b*p1+def->c*p2;
       p2=p1;
       p1=x;
       return x;
@@ -238,23 +239,23 @@ namespace Ronan
 
   static ResDef d_peq1;
 
-  static sF32 flerp(const sF32 a,const sF32 b,const sF32 x) { return a+x*(b-a); }
-  static sF32 db2lin(sF32 db1, sF32 db2, sF32 x) { return (sF32)sFPow(2.0,(flerp(db1,db2,x)-70)/6.0); }
-  static const sF32 f4=3200;
-  static const sF32 f5=4000;
-  static const sF32 f6=6000;
-  static const sF32 bn=100;
-  static const sF32 b4=200;
-  static const sF32 b5=500;
-  static const sF32 b6=800;
+  static float flerp(const float a,const float b,const float x) { return a+x*(b-a); }
+  static float db2lin(float db1, float db2, float x) { return (float)sFPow(2.0,(flerp(db1,db2,x)-70)/6.0); }
+  static const float f4=3200;
+  static const float f5=4000;
+  static const float f6=6000;
+  static const float bn=100;
+  static const float b4=200;
+  static const float b5=500;
+  static const float b6=800;
 
   struct syVRonan
   {
     ResDef rdef[7]; // nas,f1,f2,f3,f4,f5,f6;
-    sF32 a_voicing;
-    sF32 a_aspiration;
-    sF32 a_frication;
-    sF32 a_bypass;
+    float a_voicing;
+    float a_aspiration;
+    float a_frication;
+    float a_bypass;
   };
 
 
@@ -264,52 +265,52 @@ namespace Ronan
 
     Resonator res[7];  // 0:nas, 1..6: 1..6
 
-    sF32 lastin2;
+    float lastin2;
 
     // settings
     const char *texts[64];
-    sF32  pitch;
-    sInt  framerate;
+    float  pitch;
+    int  framerate;
 
     // noise
-    sU32 nseed;
-    sF32 nout;
+    uint32_t nseed;
+    float nout;
 
     // phonem seq
-    sInt framecount;  // frame rate divider
-    sInt spos;        // pos within syl definition (0..3)
-    sInt scounter;    // syl duration divider
-    sInt cursyl;      // current syl
-    sInt durfactor;   // duration modifier
-    sF32 invdur;      // 1.0 / current duration
+    int framecount;  // frame rate divider
+    int spos;        // pos within syl definition (0..3)
+    int scounter;    // syl duration divider
+    int cursyl;      // current syl
+    int durfactor;   // duration modifier
+    float invdur;      // 1.0 / current duration
     const char *baseptr; // pointer to start of text
     const char *ptr;  // pointer to text
-    sInt curp1, curp2;  // current/last phonemes
+    int curp1, curp2;  // current/last phonemes
 
     // sync
-    sInt wait4on;
-    sInt wait4off;
+    int wait4on;
+    int wait4off;
 
     // post EQ
-    sF32 hpb1, hpb2;
+    float hpb1, hpb2;
     Resonator peq1;
 
-    void SetFrame(const Phoneme &p1s, const Phoneme &p2s, const sF32 x, syVRonan &dest)
+    void SetFrame(const Phoneme &p1s, const Phoneme &p2s, const float x, syVRonan &dest)
     {
       static Phoneme p1,p2;
 
-      static const sF32 * const p1f[]={&p1.fnf,&p1.f1f,&p1.f2f,&p1.f3f,&f4    ,&f5     ,&f6};
-      static const sF32 * const p1b[]={&bn    ,&p1.f1b,&p1.f2b,&p1.f3b,&b4    ,&b5     ,&b6};
-      static const sF32 * const p1a[]={&p1.a_n,&p1.a_1,&p1.a_2,&p1.a_3,&p1.a_4,&p1.a_56,&p1.a_56};
+      static const float * const p1f[]={&p1.fnf,&p1.f1f,&p1.f2f,&p1.f3f,&f4    ,&f5     ,&f6};
+      static const float * const p1b[]={&bn    ,&p1.f1b,&p1.f2b,&p1.f3b,&b4    ,&b5     ,&b6};
+      static const float * const p1a[]={&p1.a_n,&p1.a_1,&p1.a_2,&p1.a_3,&p1.a_4,&p1.a_56,&p1.a_56};
 
-      static const sF32 * const p2f[]={&p2.fnf,&p2.f1f,&p2.f2f,&p2.f3f,&f4    ,&f5     ,&f6};
-      static const sF32 * const p2b[]={&bn    ,&p2.f1b,&p2.f2b,&p2.f3b,&b4    ,&b5     ,&b6};
-      static const sF32 * const p2a[]={&p2.a_n,&p2.a_1,&p2.a_2,&p2.a_3,&p2.a_4,&p2.a_56,&p2.a_56};
+      static const float * const p2f[]={&p2.fnf,&p2.f1f,&p2.f2f,&p2.f3f,&f4    ,&f5     ,&f6};
+      static const float * const p2b[]={&bn    ,&p2.f1b,&p2.f2b,&p2.f3b,&b4    ,&b5     ,&b6};
+      static const float * const p2a[]={&p2.a_n,&p2.a_1,&p2.a_2,&p2.a_3,&p2.a_4,&p2.a_56,&p2.a_56};
 
       p1=p1s;
       p2=p2s;
 
-      for (sInt i=0; i<7; i++)
+      for (int i=0; i<7; i++)
         dest.rdef[i].set(flerp(*p1f[i],*p2f[i],x)*pitch,flerp(*p1b[i],*p2b[i],x),db2lin(*p1a[i],*p2a[i],x));
 
       dest.a_voicing=db2lin(p1.a_voicing,p2.a_voicing,x);
@@ -320,9 +321,9 @@ namespace Ronan
 
 
     #define NOISEGAIN 0.25f
-    sF32 noise()
+    float noise()
     {
-      union { sU32 i; sF32 f; } val;
+      union { uint32_t i; float f; } val;
 
       // random...
       nseed=(nseed*196314165)+907633515;
@@ -337,7 +338,7 @@ namespace Ronan
 
     void reset()
     {
-      for (sInt i=0; i<7; i++) res[i].setdef(rdef[i]);
+      for (int i=0; i<7; i++) res[i].setdef(rdef[i]);
       peq1.setdef(d_peq1);
       SetFrame(phonemes[18],phonemes[18],0,*this); // off
       SetFrame(phonemes[18],phonemes[18],0,newframe); // off
@@ -366,10 +367,10 @@ namespace Ronan
 
 using namespace Ronan;
 
-extern "C" void ronanCBSetSR(syWRonan *ptr,sU32 sr)
+extern "C" void ronanCBSetSR(syWRonan *ptr,uint32_t sr)
 {
   g.samplerate=sr;
-  g.fc2pi_sr=2.0f*PI/(sF32)sr;
+  g.fc2pi_sr=2.0f*PI/(float)sr;
   g.fcminuspi_sr=-g.fc2pi_sr*0.5f;
 }
 
@@ -377,14 +378,14 @@ extern "C" void ronanCBSetSR(syWRonan *ptr,sU32 sr)
 extern "C" void ronanCBInit(syWRonan *wsptr)
 {
   // convert phoneme table to a usable format
-  register const sS8 *ptr=(const sS8*)rawphonemes;
-  register sS32 val=0;
-  for (sInt f=0; f<(PTABSIZE/NPHONEMES); f++)
+  register const int8_t *ptr=(const int8_t*)rawphonemes;
+  register int32_t val=0;
+  for (int f=0; f<(PTABSIZE/NPHONEMES); f++)
   {
-    sF32 *dest=((sF32*)phonemes)+f;
-    for (sInt p=0; p<NPHONEMES; p++)
+    float *dest=((float*)phonemes)+f;
+    for (int p=0; p<NPHONEMES; p++)
     {
-      *dest=multipliers[f]*(sF32)(val+=*ptr++);
+      *dest=multipliers[f]*(float)(val+=*ptr++);
       dest+=PTABSIZE/NPHONEMES;
     }
   }
@@ -457,7 +458,7 @@ extern "C" void ronanCBTick(syWRonan *wsptr)
 
 //          printf2("'%s' -> ",wsptr->ptr);
 
-          sInt fs,len=1,len2;
+          int fs,len=1,len2;
           for (fs=0; fs<NSYLS-1; fs++)
           {
             const syldef &s=syls[fs];
@@ -478,16 +479,16 @@ extern "C" void ronanCBTick(syWRonan *wsptr)
       wsptr->curp2=syls[wsptr->cursyl].ptab[wsptr->spos];
       wsptr->scounter=sFtol(phonemes[wsptr->curp2].duration*wsptr->durfactor);
       if (!wsptr->scounter) wsptr->scounter=1;
-      wsptr->invdur=1.0f/((sF32)wsptr->scounter*wsptr->framerate);
+      wsptr->invdur=1.0f/((float)wsptr->scounter*wsptr->framerate);
     }
     wsptr->scounter--;
   }
 
   wsptr->framecount--;
-  sF32 x=(sF32)(wsptr->scounter*wsptr->framerate+wsptr->framecount)*wsptr->invdur;
+  float x=(float)(wsptr->scounter*wsptr->framerate+wsptr->framecount)*wsptr->invdur;
   const Phoneme &p1=phonemes[wsptr->curp1];
   const Phoneme &p2=phonemes[wsptr->curp2];
-  x=(sF32)sFPow(x,(sF32)p1.rank/(sF32)p2.rank);
+  x=(float)sFPow(x,(float)p1.rank/(float)p2.rank);
   wsptr->SetFrame(p2,(fabs(p2.rank-p1.rank)>8.0f)?p2:p1,x,wsptr->newframe);
 
 }
@@ -503,7 +504,7 @@ extern "C" void ronanCBNoteOff(syWRonan *wsptr)
 }
 
 
-extern "C" void ronanCBSetCtl(syWRonan *wsptr,sU32 ctl, sU32 val)
+extern "C" void ronanCBSetCtl(syWRonan *wsptr,uint32_t ctl, uint32_t val)
 {
   // controller 4, 0-63     : set text #
   // controller 4, 64-127   : set frame rate
@@ -524,53 +525,53 @@ extern "C" void ronanCBSetCtl(syWRonan *wsptr,sU32 ctl, sU32 val)
       wsptr->framerate=val-63;
     break;
   case 5:
-    wsptr->pitch=(sF32)sFPow(2.0f,(val-64.0f)/128.0f);
+    wsptr->pitch=(float)sFPow(2.0f,(val-64.0f)/128.0f);
     break;
 
   }
 }
 
 
-extern "C" void ronanCBProcess(syWRonan *wsptr,sF32 *buf, sU32 len)
+extern "C" void ronanCBProcess(syWRonan *wsptr,float *buf, uint32_t len)
 {
   static syVRonan deltaframe;
 
   // prepare interpolation
   {
-    sF32 *src1=(sF32*)wsptr;
-    sF32 *src2=(sF32*)&wsptr->newframe;
-    sF32 *dest=(sF32*)&deltaframe;
-    sF32 mul  =1.0f/(sF32)len;
-    for (sU32 i=0; i<(sizeof(syVRonan)/sizeof(sF32)); i++)
+    float *src1=(float*)wsptr;
+    float *src2=(float*)&wsptr->newframe;
+    float *dest=(float*)&deltaframe;
+    float mul  =1.0f/(float)len;
+    for (uint32_t i=0; i<(sizeof(syVRonan)/sizeof(float)); i++)
       dest[i]=(src2[i]-src1[i])*mul;
   }
 
-  for (sU32 i=0; i<len; i++)
+  for (uint32_t i=0; i<len; i++)
   {
     // interpolate all values
     {
-      sF32 *src=(sF32*)&deltaframe;
-      sF32 *dest=(sF32*)wsptr;
-      for (sU32 i=0; i<(sizeof(syVRonan)/sizeof(sF32)); i++)
+      float *src=(float*)&deltaframe;
+      float *dest=(float*)wsptr;
+      for (uint32_t i=0; i<(sizeof(syVRonan)/sizeof(float)); i++)
         dest[i]+=src[i];
     }
 
-    sF32 in=buf[2*i];
+    float in=buf[2*i];
 
     // add aspiration noise
     in=in*wsptr->a_voicing+wsptr->noise()*wsptr->a_aspiration;
 
     // process complete input signal with f1/nasal filters
-    sF32 out=wsptr->res[0].tick(in)+wsptr->res[1].tick(in);
+    float out=wsptr->res[0].tick(in)+wsptr->res[1].tick(in);
 
 
     // differentiate input signal, add frication noise
-    sF32 lin=in;
+    float lin=in;
     in=(wsptr->noise()*wsptr->a_frication)+in-wsptr->lastin2;
     wsptr->lastin2=lin;
 
     // process diff/fric input signal with f2..f6 and bypass (phase inverted)
-    for (sInt r=2; r<7; r++)
+    for (int r=2; r<7; r++)
       out=wsptr->res[r].tick(in)-out;
 
     out=in*wsptr->a_bypass-out;
@@ -592,7 +593,7 @@ extern "C" { extern void* synthGetSpeechMem(void *a_pthis); }
 extern "C" void synthSetLyrics(void *a_pthis,const char **a_ptr)
 {
   syWRonan *wsptr=(syWRonan*)synthGetSpeechMem(a_pthis);
-  for (sInt i=0; i<64; i++) wsptr->texts[i]=a_ptr[i];
+  for (int i=0; i<64; i++) wsptr->texts[i]=a_ptr[i];
   wsptr->baseptr=wsptr->ptr=wsptr->texts[0];
 }
 

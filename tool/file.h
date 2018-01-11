@@ -160,7 +160,7 @@ public:
 
     if (len)
     {
-      fbuf=new sU8[len];
+      fbuf=new uint8_t[len];
       if (fbuf)
       {
         flen=len;

@@ -5,13 +5,13 @@
 
 struct Phoneme
 {
-  sF32 f1f, f1b;
-  sF32 f2f, f2b;
-  sF32 f3f, f3b;
-  sF32 fnf;
-  sF32  a_voicing, a_aspiration, a_frication, a_bypass;
-  sF32  a_1, a_2, a_3, a_4, a_n, a_56;
-  sF32  duration, rank;
+  float f1f, f1b;
+  float f2f, f2b;
+  float f3f, f3b;
+  float fnf;
+  float  a_voicing, a_aspiration, a_frication, a_bypass;
+  float  a_1, a_2, a_3, a_4, a_n, a_56;
+  float  duration, rank;
 };
 
 #pragma pack (pop)
@@ -30,13 +30,13 @@ struct Phoneme
 #define NPHONEMES 69
 #define PTABSIZE  1311
 
-static const sU8 multipliers[PTABSIZE/NPHONEMES] = { 10,10,20,10,20,10,10,1,1,1,1,1,1,1,1,1,1,1,1};
+static const uint8_t multipliers[PTABSIZE/NPHONEMES] = { 10,10,20,10,20,10,10,1,1,1,1,1,1,1,1,1,1,1,1};
 
 
 // CHANGES:  a_f56 + 15 (-> duration -15)
 //           a_bypass -3 (-> a_f1 +3)
 
-static const sU8 rawphonemes[PTABSIZE] =
+static const uint8_t rawphonemes[PTABSIZE] =
 {
 //   0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65  66  67  68 
 // f1f (Hz*1/10)
