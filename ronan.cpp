@@ -21,7 +21,7 @@ int mystrnicmp1(const char *a, const char *b) {
   return *a ? 0 : l;
 }
 
-#define PI (4.0f * (float)atanf(1.0f))
+#define PI (4.0f * atanf(1.0f))
 
 #include "phonemtab.h"
 
@@ -101,7 +101,7 @@ struct ResDef {
   void set(float f, float bw, float gain) {
     float r = expf(g.fcminuspi_sr * bw);
     c = -(r * r);
-    b = r * (float)cosf(g.fc2pi_sr * f) * 2.0f;
+    b = r * cosf(g.fc2pi_sr * f) * 2.0f;
     a = gain * (1.0f - b - c);
   }
 };
@@ -234,7 +234,7 @@ using namespace Ronan;
 
 extern "C" void ronanCBSetSR(syWRonan *ptr, uint32_t sr) {
   g.samplerate = sr;
-  g.fc2pi_sr = 2.0f * PI / (float)sr;
+  g.fc2pi_sr = 2.0f * PI / sr;
   g.fcminuspi_sr = -g.fc2pi_sr * 0.5f;
 }
 
