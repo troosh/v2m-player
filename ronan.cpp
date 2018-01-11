@@ -8,111 +8,7 @@
 #include <math.h>
 #include <stdint.h>
 
-//#pragma intrinsic (atan, cos, fabs)
-
-
-static int sFtol (const float f)
-{
-#if 0
-  __asm
-  {
-    fld f
-    push eax
-    fistp dword ptr [esp]
-    pop eax
-  }
-#else
-    return (int)f;
-#endif
-}
-
-
-static double sFPow(double a,double b)
-{
-#if 0
-  // faster pow based on code by agner fog
-  __asm
-  {
-    fld   qword ptr [b];
-    fld   qword ptr [a];
-
-    ftst;
-    fstsw ax;
-    sahf;
-    jz    zero;
-
-    fyl2x;
-    fist  dword ptr [a];
-    sub   esp, 12;
-    mov   dword ptr [esp],0;
-    mov   dword ptr [esp+4],0x80000000;
-    fisub dword ptr [a];
-    mov   eax, dword ptr [a];
-    add   eax, 0x3fff;
-    mov   [esp+8], eax;
-    jle   underflow;
-    cmp   eax, 0x8000;
-    jge   overflow;
-    f2xm1;
-    fld1;
-    fadd;
-    fld   tbyte ptr [esp];
-    add   esp, 12;
-    fmul;
-    jmp   end;
-
-underflow:
-    fstp  st;
-    fldz;
-    add   esp, 12;
-    jmp   end;
-
-overflow:
-    push  0x7f800000;
-    fstp  st;
-    fld   dword ptr [esp];
-    add   esp, 16;
-    jmp   end;
-
-zero:
-    fstp  st(1);
-
-end:
-  }
-#else
-    return pow(a, b);
-#endif
-}
-
-static double sFExp(double f)
-{
-#if 0
-  __asm
-  {
-    fld   qword ptr [f];
-    fldl2e;
-    fmulp st(1), st;
-
-    fld1;
-    fld   st(1);
-    fprem;
-    f2xm1;
-    faddp st(1), st;
-    fscale;
-
-    fstp  st(1);
-    fstp  qword ptr [f];
-  }
-#else
-  f = exp(f);
-#endif
-  return f;
-}
-
-#ifndef sCopyMem
-#define sCopyMem memcpy
-#endif
-
+//#pragma intrinsic (powf, expf, cosf, fabsf)
 
 namespace Ronan
 {
@@ -213,7 +109,7 @@ namespace Ronan
 
     void set(float f, float bw, float gain)
     {
-      float r=(float)sFExp(g.fcminuspi_sr*bw);
+      float r = exp(g.fcminuspi_sr*bw);
       c=-(r*r);
       b=r*(float)cosf(g.fc2pi_sr*f)*2.0f;
       a=gain*(1.0f-b-c);
@@ -240,7 +136,7 @@ namespace Ronan
   static ResDef d_peq1;
 
   static float flerp(const float a,const float b,const float x) { return a+x*(b-a); }
-  static float db2lin(float db1, float db2, float x) { return (float)sFPow(2.0,(flerp(db1,db2,x)-70)/6.0); }
+  static float db2lin(float db1, float db2, float x) { return powf(2.0f,(flerp(db1,db2,x)-70.f)/6.0f); }
   static const float f4=3200;
   static const float f5=4000;
   static const float f6=6000;
@@ -477,7 +373,7 @@ extern "C" void ronanCBTick(syWRonan *wsptr)
 
       wsptr->curp1=wsptr->curp2;
       wsptr->curp2=syls[wsptr->cursyl].ptab[wsptr->spos];
-      wsptr->scounter=sFtol(phonemes[wsptr->curp2].duration*wsptr->durfactor);
+      wsptr->scounter = int(phonemes[wsptr->curp2].duration*wsptr->durfactor);
       if (!wsptr->scounter) wsptr->scounter=1;
       wsptr->invdur=1.0f/((float)wsptr->scounter*wsptr->framerate);
     }
@@ -488,8 +384,8 @@ extern "C" void ronanCBTick(syWRonan *wsptr)
   float x=(float)(wsptr->scounter*wsptr->framerate+wsptr->framecount)*wsptr->invdur;
   const Phoneme &p1=phonemes[wsptr->curp1];
   const Phoneme &p2=phonemes[wsptr->curp2];
-  x=(float)sFPow(x,(float)p1.rank/(float)p2.rank);
-  wsptr->SetFrame(p2,(fabs(p2.rank-p1.rank)>8.0f)?p2:p1,x,wsptr->newframe);
+  x=powf(x,(float)p1.rank/(float)p2.rank);
+  wsptr->SetFrame(p2,(fabsf(p2.rank-p1.rank)>8.0f)?p2:p1,x,wsptr->newframe);
 
 }
 
@@ -525,7 +421,7 @@ extern "C" void ronanCBSetCtl(syWRonan *wsptr,uint32_t ctl, uint32_t val)
       wsptr->framerate=val-63;
     break;
   case 5:
-    wsptr->pitch=(float)sFPow(2.0f,(val-64.0f)/128.0f);
+    wsptr->pitch=powf(2.0f,(val-64.0f)/128.0f);
     break;
 
   }
